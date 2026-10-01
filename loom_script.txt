@@ -1,0 +1,70 @@
+5-MINUTE LOOM SCRIPT — SCRAPING & AUTOMATION ENGINEER
+
+0:00–0:20 INTRO
+
+“Hi, my name is Mohammed Faiyaz, and today is October 1st, 2026.
+This is a short technical demonstration of a Python and Playwright scraping system.
+I’ll show asynchronous browser automation, bounded concurrency, isolated sessions, a proxy-management abstraction, retry and backoff handling, challenge detection, and structured JSON output.”
+
+0:20–1:00 ARCHITECTURE
+
+“This is the project structure. The scraper is separated into browser management, parsing, retry logic, proxy management, and orchestration.
+The main design principle is to keep browser sessions isolated and concurrency bounded rather than launching unlimited browser instances.”
+
+Show:
+main.py
+scraper/browser.py
+scraper/proxy_manager.py
+scraper/retry.py
+scraper/parser.py
+scraper/scraper.py
+
+1:00–2:10 LIVE RUN
+
+“Now I’ll run the scraper against an intentionally public scraping practice target.
+The application creates multiple tasks, but a semaphore limits the number of active workers to three.
+Each task gets its own BrowserContext, which gives it independent cookies and session state.”
+
+Run:
+python main.py
+
+Point out the logs:
+attempt number
+worker/task execution
+proxy selection or direct connection
+successful extraction
+
+2:10–2:50 CONCURRENCY
+
+“The important part here is that the tasks are asynchronous. asyncio.gather schedules the jobs concurrently, while the semaphore prevents uncontrolled concurrency.
+In a production system, this value would be configurable per target and constrained by infrastructure capacity and the target’s permitted rate.”
+
+Show scraper.py.
+
+2:50–3:30 SESSION + PROXY MANAGEMENT
+
+“Playwright supports proxy configuration, and my ProxyManager abstracts the selection of authorized proxies.
+I also create an independent browser context for each scraping task. That means cookies and session state are not unintentionally shared between workers.”
+
+Show proxy_manager.py and browser.py.
+
+“If proxy credentials are needed, they are supplied through environment variables and are not committed to source control.”
+
+3:30–4:10 ANTI-BOT / CLOUDFLARE HANDLING
+
+“For anti-bot and Cloudflare-style challenges, my approach is detection and graceful handling rather than bypassing an access-control mechanism.
+The scraper checks for challenge indicators. If a challenge is detected, it records the failure, applies exponential backoff with jitter, retries according to policy, and eventually fails gracefully if the challenge persists.”
+
+Show CHALLENGE_MARKERS and retry.py.
+
+4:10–4:40 JSON OUTPUT
+
+“After extraction, the records are normalized into structured JSON. This makes the scraper suitable as an upstream component for a database, API, analytics pipeline, or downstream data-processing system.”
+
+Open output/results.json.
+
+4:40–5:00 SCALING
+
+“For production scale, I would place a scheduler or API in front of a task queue such as Redis or RabbitMQ, run multiple controlled workers, persist results in PostgreSQL or object storage, and add structured logging, metrics, rate limits, deduplication, checkpointing, and monitoring.
+The goal is reliable, observable, and respectful automation rather than simply maximizing request volume.
+Thank you.”
